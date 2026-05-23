@@ -1,3 +1,5 @@
+meu GitHub https://github.com/drikahonorato-dev/Projeto-Simulador-de-Financiamento.git
+
 # Simulador de Financiamentos — API REST
 
 API backend para simulação de financiamentos com cálculo de juros compostos, memória de cálculo detalhada e persistência em banco H2 embutido.
@@ -76,7 +78,6 @@ Este comando:
 
 Apos rodar os testes, abra no navegador:
 
-git add README.md
 No Windows:
 ```powershell
 Start-Process "target\site\jacoco\index.html"
