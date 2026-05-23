@@ -1,61 +1,155 @@
-# simulador
+# Simulador de Financiamentos — API REST
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+API backend para simulação de financiamentos com cálculo de juros compostos, memória de cálculo detalhada e persistência em banco H2 embutido.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+---
 
-## Running the application in dev mode
+## Stack
 
-You can run your application in dev mode that enables live coding using:
+| Item | Tecnologia |
+|---|---|
+| Linguagem | Java 25 |
+| Framework | Quarkus 3.35.3 |
+| Banco de Dados | H2 (embutido, arquivo local) |
+| Testes | JUnit 5 + Mockito + RestAssured |
+| Cobertura | JaCoCo (threshold minimo: 80%) |
+| Documentacao | OpenAPI / Swagger UI (SmallRye) |
 
-```shell script
+---
+
+## Pre-requisitos
+
+- Java 25 instalado
+- Maven (ou usar o wrapper mvnw incluido no projeto)
+- Sem necessidade de Docker ou scripts SQL manuais
+
+---
+
+## Como compilar
+
+```bash
+./mvnw clean package -DskipTests
+```
+
+No Windows:
+```powershell
+.\mvnw clean package -DskipTests
+```
+
+---
+
+## Como executar a aplicacao
+
+```bash
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
-
-## Packaging and running the application
-
-The application can be packaged using:
-
-```shell script
-./mvnw package
+No Windows:
+```powershell
+.\mvnw quarkus:dev
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+A aplicacao sobe automaticamente em http://localhost:8080 e cria o schema do banco H2 sozinha.
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+---
 
-If you want to build an _über-jar_, execute the following command:
+## Como rodar os testes e validar a cobertura
 
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
+### Comando exato:
+
+```bash
+./mvnw clean test
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
+No Windows:
+```powershell
+.\mvnw clean test
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+Este comando:
+1. Compila o projeto
+2. Executa os 37 testes (unitarios e integracao)
+3. Gera o relatorio de cobertura JaCoCo
+4. Falha o build se a cobertura for inferior a 80%
 
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
+### Ver relatorio de cobertura:
+
+Apos rodar os testes, abra no navegador:
+
+git add README.md
+No Windows:
+```powershell
+Start-Process "target\site\jacoco\index.html"
 ```
 
-You can then execute your native executable with: `./target/simulador-1.0.0-SNAPSHOT-runner`
+Cobertura atual: 99%
 
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
+---
 
-## Related Guides
+## Endpoints da API
 
-- REST resources for Hibernate ORM with Panache ([guide](https://quarkus.io/guides/rest-data-panache)): Generate Jakarta REST resources for your Hibernate Panache entities and repositories
-- JDBC Driver - H2 ([guide](https://quarkus.io/guides/datasource)): Connect to the H2 database via JDBC
-- Hibernate Validator ([guide](https://quarkus.io/guides/validation)): Bean validation using Hibernate Validator and Jakarta Validation annotations
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Generate OpenAPI schemas and serve Swagger UI for REST API documentation
+### POST /simulacoes - Criar simulacao
+
+Request:
+```json
+{
+  "valorInicial": 1000.00,
+  "taxaJurosMensal": 1.5,
+  "prazoMeses": 12
+}
+```
+
+Response 201 Created:
+```json
+{
+  "id": 1,
+  "valorInicial": 1000.00,
+  "taxaJurosMensal": 1.5,
+  "prazoMeses": 12,
+  "valorTotalFinal": 1195.62,
+  "valorTotalJuros": 195.62,
+  "memoriaCalculo": [
+    {
+      "mes": 1,
+      "saldoInicial": 1000.00,
+      "juro": 15.00,
+      "saldoFinal": 1015.00
+    }
+  ]
+}
+```
+
+| Codigo | Situacao |
+|---|---|
+| 201 | Simulacao criada com sucesso |
+| 400 | Payload invalido |
+| 404 | ID nao encontrado |
+
+---
+
+### GET /simulacoes/{id} - Consultar simulacao
+
+Response 200 OK: objeto completo da simulacao com memoria de calculo.
+
+---
+
+## Documentacao interativa (Swagger UI)
+
+Com a aplicacao rodando, acesse:
+http://localhost:8080/swagger-ui
+
+---
+
+## Estrutura do projeto
+---
+
+## Suite de testes
+
+| Classe | Tipo | Testes |
+|---|---|---|
+| SimulacaoServiceTest | Unitario (Mockito) | 12 |
+| SimulacaoResourceTest | Integracao (RestAssured) | 4 |
+| SimulacaoRequestDTOTest | Unitario (Bean Validation) | 13 |
+| NotFoundExceptionMapperTest | Unitario | 4 |
+| ValidationExceptionMapperTest | Unitario (Mockito) | 4 |
+| Total | | 37 |
